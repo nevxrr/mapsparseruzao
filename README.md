@@ -68,6 +68,7 @@ python run.py
 | `--amenities` | список amenity через запятую |
 | `--include-with-website` | оставить и компании с сайтом |
 | `--limit N` | обрезать таблицу до N строк |
+| `--overpass-url` | другое зеркало Overpass |
 
 Пример быстрой проверки (аптеки, 20 строк):
 
@@ -76,6 +77,13 @@ python run.py --categories amenity --amenities pharmacy --limit 20 -o sample.xls
 ```
 
 Полный обход округа может занять 1–3 минуты: запрос идёт в публичный Overpass. Если одно зеркало не отвечает, пробуются запасные.
+
+## Тесты
+
+```bash
+python -m pip install -r requirements.txt pytest
+python -m pytest
+```
 
 ## Ограничение данных
 
