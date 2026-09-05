@@ -4,6 +4,7 @@ import argparse
 import sys
 from pathlib import Path
 
+from mapsparseruzao.bootstrap import preflight
 from mapsparseruzao.constants import DEFAULT_AMENITIES, DEFAULT_OVERPASS_URL
 from mapsparseruzao.overpass import OverpassClient, OverpassError
 from mapsparseruzao.parse import companies_from_overpass
@@ -53,6 +54,11 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run(argv: list[str] | None = None) -> int:
+    problem = preflight()
+    if problem:
+        print(problem, file=sys.stderr)
+        return 2
+
     args = build_parser().parse_args(argv)
     categories = [item.strip() for item in args.categories.split(",") if item.strip()]
     amenities = [item.strip() for item in args.amenities.split(",") if item.strip()]

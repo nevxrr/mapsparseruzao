@@ -1,81 +1,84 @@
-# Парсер компаний ЮЗАО без сайта → `.xlsx`
+# Парсер компаний ЮЗАО без сайта → Excel
 
-Бесплатный CLI: находит компании в **Юго-Западном административном округе Москвы** и сохраняет в Excel тех, у кого **не указан сайт**.
+Скачивает компании Юго-Западного округа Москвы (открытые данные OpenStreetMap) и сохраняет в `.xlsx` те, у кого **не указан сайт**.
 
-## Короткий ответ про Яндекс.Карты
+Ключ Яндекса, аккаунт и `pip install -e` не нужны.
 
-Страница [JavaScript API Яндекс Карт](https://yandex.ru/maps-api/docs/js-api/index.html) — это **не API для выгрузки базы компаний**. Это клиентская библиотека, чтобы встроить интерактивную карту на сайт. Поиск там есть (`YMapSearchControl`), но он показывает результаты на карте, а не отдаёт таблицу.
+## Установка и запуск
 
-Сделать **легальный бесплатный** парсер «все компании ЮЗАО из Яндекс.Карт без сайта → `.xlsx`» нельзя:
+Нужен [Python 3.9+](https://www.python.org/downloads/). На Windows при установке включите галочку **Add python.exe to PATH**.
 
-1. **JS API не предназначен для массовой выгрузки.** Он рисует карту и контрол поиска в браузере.
-2. Нужный продукт Яндекса — [API Поиска по организациям](https://yandex.ru/maps-api/products/geosearch-api). Бесплатная лицензия **запрещает сохранять данные** (в базу, Excel и т.п.). В [условиях API](https://yandex.ru/legal/maps_api/) это п. 5.1.5: сохранять ответы сервисов нельзя, кроме временного кэша до 30 дней. То же прямо сказано в [правилах бесплатного использования](https://yandex.ru/dev/commercial/doc/ru/concepts/conditions): *нельзя взять данные геокодера/поиска и сохранить их в Excel*.
-3. Лицензия, которая разрешает хранить данные, платная (сотни тысяч рублей / тысячи долларов в год).
-4. Неофициальный скрейпинг `yandex.ru/maps` нарушает правила сервиса и здесь не делается.
-
-Этот репозиторий поэтому работает на **открытых данных OpenStreetMap** (лицензия [ODbL](https://opendatacommons.org/licenses/odbl/)): граница ЮЗАО — relation [`1304596`](https://www.openstreetmap.org/relation/1304596).
-
-Ограничение OSM: «нет сайта» значит **в карточке OSM не заполнен тег** `website` / `contact:website`. У части компаний сайт есть в жизни, но не отмечен в OSM. Покрытие тоже меньше, чем у Яндекс.Карт.
-
-## Что попадает в таблицу
-
-По официальной границе ЮЗАО запрашиваются:
-
-- магазины (`shop`)
-- офисы (`office`)
-- ремёсла (`craft`)
-- коммерческие `amenity` (кафе, аптеки, клиники, автосервисы и т.д.)
-- гостиницы (`tourism=hotel|hostel|…`)
-
-По умолчанию в `.xlsx` остаются только записи **без сайта**. Колонки: название, категория, район, адрес, телефон, email, сайт, часы, координаты, ссылка на OSM.
-
-## Установка
-
-Нужен Python 3.11+.
+Скачайте репозиторий: кнопка **Code → Download ZIP**, распакуйте. Или:
 
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
+git clone https://github.com/nevxrr/mapsparseruzao.git
+cd mapsparseruzao
 ```
 
-## Запуск
+### Windows
 
-Весь ЮЗАО, только компании без сайта:
+1. Дважды нажмите `install.bat`
+2. Дважды нажмите `run.bat`
+3. В этой же папке появится файл `yuzao-companies-no-website.xlsx`
+
+Из командной строки то же самое:
+
+```bat
+python -m pip install -r requirements.txt
+python run.py
+```
+
+### Linux / macOS
 
 ```bash
-python -m mapsparseruzao -o yuzao-companies-no-website.xlsx
+python3 -m pip install -r requirements.txt
+python3 run.py
 ```
 
-Быстрая проверка (аптеки, не больше 20 строк):
+или `./install.sh`, затем `python3 run.py`.
 
-```bash
-python -m mapsparseruzao \
-  --categories amenity \
-  --amenities pharmacy \
-  --limit 20 \
-  -o sample.xlsx
+Готово. Пакет в режиме разработки, venv и `pyproject.toml` для обычного запуска не требуются.
+
+## Если пишет, что нет модуля или конфига
+
+Вы в папке без файлов `run.py` и `requirements.txt`. На ветке `main` должен быть весь проект, не пустой README.
+
+Проверьте, что рядом с вами лежат:
+
+- `run.py`
+- `requirements.txt`
+- `install.bat` / `run.bat`
+- папка `mapsparseruzao`
+
+Потом снова:
+
+```bat
+python -m pip install -r requirements.txt
+python run.py
 ```
 
-Полезные флаги:
+Не запускайте `pip install -e ".[dev]"` — это было для разработки и на части ноутбуков падает.
+
+## Параметры
 
 | Флаг | Смысл |
 | --- | --- |
 | `-o`, `--output` | путь к `.xlsx` |
 | `--categories` | `shop,office,craft,amenity,tourism` |
 | `--amenities` | список amenity через запятую |
-| `--include-with-website` | не отфильтровывать тех, у кого сайт есть |
+| `--include-with-website` | оставить и компании с сайтом |
 | `--limit N` | обрезать таблицу до N строк |
-| `--overpass-url` | другое зеркало Overpass |
 
-Запрос идёт в публичный [Overpass API](https://overpass-api.de/). Полный обход округа может занять 1–3 минуты. Если зеркало перегружено, клиент сам пробует запасные.
+Пример быстрой проверки (аптеки, 20 строк):
 
-## Тесты
-
-```bash
-pytest
+```bat
+python run.py --categories amenity --amenities pharmacy --limit 20 -o sample.xlsx
 ```
 
-## Атрибуция
+Полный обход округа может занять 1–3 минуты: запрос идёт в публичный Overpass. Если одно зеркало не отвечает, пробуются запасные.
 
-Данные © участники OpenStreetMap, [ODbL](https://www.openstreetmap.org/copyright).
+## Ограничение данных
+
+«Нет сайта» значит, что в OpenStreetMap не заполнены теги `website` / `contact:website`. Это не выгрузка Яндекс.Карт.
+
+JS API Яндекс Карт [не умеет легально сохранять справочник в Excel](https://yandex.ru/legal/maps_api/). Здесь используется граница ЮЗАО в OSM: [relation 1304596](https://www.openstreetmap.org/relation/1304596). Данные © участники OpenStreetMap, [ODbL](https://www.openstreetmap.org/copyright).
