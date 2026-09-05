@@ -5,9 +5,9 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mapsparseruzao"
 version = "1.0.0"
-description = "Бесплатный парсер компаний ЮЗАО (Москва) без сайта → .xlsx"
+description = "Парсер компаний ЮЗАО (Москва) без сайта → .xlsx"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = [
     "openpyxl>=3.1.2",
     "requests>=2.31.0",
@@ -20,8 +20,9 @@ dev = ["pytest>=8.0"]
 mapsparseruzao = "mapsparseruzao.cli:main"
 
 [tool.setuptools.packages.find]
-where = ["src"]
+include = ["mapsparseruzao*"]
+exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-pythonpath = ["src"]
+pythonpath = ["."]
